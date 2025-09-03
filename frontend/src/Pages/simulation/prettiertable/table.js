@@ -237,8 +237,8 @@ const TimeTable = ({
 
     let timeC = timeCode
         .slice(0, 5)
-        .concat(courseOptions.extendTimetable["六"] ? ["六"] : [])
-        .concat(courseOptions.extendTimetable["日"] ? ["日"] : []);
+        .concat(courseOptions.extendTimetable["六"] ? ["6"] : [])
+        .concat(courseOptions.extendTimetable["日"] ? ["7"] : []);
     let secC = difference(
         secs,
         Object.keys(courseOptions.extendTimetable).filter(
