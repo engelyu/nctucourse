@@ -599,3 +599,20 @@ export const removeCustomCourse = (id, semester) => (dispatch, getState) =>
     axios
         .delete(`/api/simulation/custom/${id}/`)
         .then(() => dispatch(fetchCustomCourses(semester)));
+
+// Hovering a course anywhere (the timetable itself, or a list on the left)
+// points the timetable at it: its own blocks light up, and if it is not on
+// the table yet, the slots it would take are outlined.
+export const hoverCourse = (courseId) => (dispatch) => {
+    dispatch(actions.courseSim.hoverCourse(courseId));
+};
+
+export const cancelHoverCourse = () => (dispatch) => {
+    dispatch(actions.courseSim.cancelHoverCourse());
+};
+
+// Touch devices have no hover, and firing it on tap makes the table flicker.
+export const canHover = () =>
+    typeof window !== "undefined" &&
+    typeof window.matchMedia === "function" &&
+    window.matchMedia("(hover: hover)").matches;

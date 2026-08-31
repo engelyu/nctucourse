@@ -1,5 +1,5 @@
 import React from 'react';
-import { useSelector } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import { makeStyles } from '@material-ui/core/styles';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction';
@@ -8,6 +8,7 @@ import Chip from '@material-ui/core/Chip';
 import Typography from '@material-ui/core/Typography';
 import GradeIcon from '@material-ui/icons/Grade';
 import { makeInfoPageUrl, origin_time_key_to_new } from '../Util/dataUtil/course'
+import { canHover, cancelHoverCourse, hoverCourse } from '../Redux/Actions/index'
 import { CourseTypeColorMap } from '../Util/style'
 
 
@@ -45,6 +46,7 @@ const CourseListItem = (props) => {
     const classes = useStyles();
     const { course, onClick, actions, multiAction } = props
     const newTimeCode = useSelector(state => state.courseSim.settings.newTimeCode)
+    const dispatch = useDispatch()
     const begdeClasses = ['#ff7675', '#ffeaa7', '#55efc4', '#74b9ff'] // palette/cn
     const briefMap = {
         'A501': [1, '核心(人文)'],
@@ -64,7 +66,12 @@ const CourseListItem = (props) => {
     let realOnClick
     if (!onClick) realOnClick = (courseId) => { window.open(makeInfoPageUrl(courseId)) }
     else { realOnClick = onClick }
-    return (<ListItem dense button onClick={e => realOnClick(course.cos_id)}
+    const hoverProps = canHover() ? {
+        onMouseEnter: () => dispatch(hoverCourse(course.cos_id)),
+        onMouseLeave: () => dispatch(cancelHoverCourse()),
+    } : {}
+
+    return (<ListItem dense button onClick={e => realOnClick(course.cos_id)} {...hoverProps}
         className={multiAction === 2 ? classes.twoAction : multiAction === 3 ? classes.threeAction : undefined}
     >
         <ListItemText
