@@ -1,0 +1,34 @@
+{
+  "files": {
+    "main.css": "/nctucourse/static/css/main.2d25cf44.chunk.css",
+    "main.js": "/nctucourse/static/js/main.8ee4288a.chunk.js",
+    "main.js.map": "/nctucourse/static/js/main.8ee4288a.chunk.js.map",
+    "runtime-main.js": "/nctucourse/static/js/runtime-main.3da64a01.js",
+    "runtime-main.js.map": "/nctucourse/static/js/runtime-main.3da64a01.js.map",
+    "static/js/2.d68cfd3d.chunk.js": "/nctucourse/static/js/2.d68cfd3d.chunk.js",
+    "static/js/2.d68cfd3d.chunk.js.map": "/nctucourse/static/js/2.d68cfd3d.chunk.js.map",
+    "index.html": "/nctucourse/index.html",
+    "precache-manifest.ef8d4f5d09f6ed5e47624eaec030c7ae.js": "/nctucourse/precache-manifest.ef8d4f5d09f6ed5e47624eaec030c7ae.js",
+    "service-worker.js": "/nctucourse/service-worker.js",
+    "static/css/main.2d25cf44.chunk.css.map": "/nctucourse/static/css/main.2d25cf44.chunk.css.map",
+    "static/js/2.d68cfd3d.chunk.js.LICENSE.txt": "/nctucourse/static/js/2.d68cfd3d.chunk.js.LICENSE.txt",
+    "static/media/gpa_teach1.png": "/nctucourse/static/media/gpa_teach1.5bddb30c.png",
+    "static/media/gpa_teach2.png": "/nctucourse/static/media/gpa_teach2.c9a6945e.png",
+    "static/media/logo256.png": "/nctucourse/static/media/logo256.33724e07.png",
+    "static/media/nctu_gpa_rule.PNG": "/nctucourse/static/media/nctu_gpa_rule.620650e3.PNG",
+    "static/media/p1.PNG": "/nctucourse/static/media/p1.1551d230.PNG",
+    "static/media/p2.PNG": "/nctucourse/static/media/p2.432457ce.PNG",
+    "static/media/p3.PNG": "/nctucourse/static/media/p3.59bd4520.PNG",
+    "static/media/p4.PNG": "/nctucourse/static/media/p4.ba42fa1f.PNG",
+    "static/media/p5.PNG": "/nctucourse/static/media/p5.89ecbafe.PNG",
+    "static/media/p6.PNG": "/nctucourse/static/media/p6.3a56930f.PNG",
+    "static/media/p7.PNG": "/nctucourse/static/media/p7.339de743.PNG",
+    "static/media/p8.png": "/nctucourse/static/media/p8.02ee60b7.png"
+  },
+  "entrypoints": [
+    "static/js/runtime-main.3da64a01.js",
+    "static/js/2.d68cfd3d.chunk.js",
+    "static/css/main.2d25cf44.chunk.css",
+    "static/js/main.8ee4288a.chunk.js"
+  ]
+}
