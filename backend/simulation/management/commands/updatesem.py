@@ -1,5 +1,5 @@
 import json
-from simulation.models import SemesterCoursesMapping, SimCollect
+from simulation.models import SemesterCoursesMapping, SimCollect, SimPlanCollect
 from django.db import transaction
 from django.core.management.base import BaseCommand, CommandError
 
@@ -27,10 +27,11 @@ class Command(BaseCommand):
                 obj.file = semesterDataFile
                 obj.save()
 
+            planCourses = SimPlanCollect.objects.filter(plan__ref_semester=semester)
             ids = set(
                 SimCollect.objects.filter(semester=semester).values_list('course_id',
                                                                          flat=True).distinct()
-            )
+            ) | set(planCourses.values_list('course_id', flat=True).distinct())
             dids = set(courseIds)
             deletedIds = ids.difference(dids)
             if len(deletedIds) > 0:
@@ -40,6 +41,7 @@ class Command(BaseCommand):
                     )
                 else:
                     SimCollect.objects.filter(semester=semester, course_id__in=deletedIds).delete()
+                    planCourses.filter(course_id__in=deletedIds).delete()
                     print("delete courses: " + str(deletedIds))
             else:
                 print("no course deleted")

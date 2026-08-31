@@ -139,7 +139,8 @@ class TimeTable extends React.Component {
         let credits = 0, hours = 0
         let classes = [...Array(this.secs.length)].map(e => [...Array(7)].map(e2 => Array(0)))
         let { courseIds, allCourses } = this.props
-        for (let course of Array.from(courseIds).map(id => allCourses[id])) {
+        // a collected course may no longer exist in the database
+        for (let course of Array.from(courseIds).map(id => allCourses[id]).filter(Boolean)) {
             credits += Number(course['cos_credit'])
             let times = getCourseTimesAndRooms(course)
             hours += times.length

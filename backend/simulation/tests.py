@@ -1,4 +1,6 @@
 import json
+import os
+import tempfile
 
 from django.contrib.auth import get_user_model
 from django.test import TestCase
@@ -112,6 +114,24 @@ class SimPlanApiTests(TestCase):
                                 data=json.dumps({'name': '  '}),
                                 content_type='application/json')
         self.assertEqual(res.status_code, 400)
+
+    def test_updatesem_prunes_plan_courses(self):
+        """Re-crawling a semester must drop plan courses that no longer exist."""
+        from django.core.management import call_command
+
+        plan_id = self.create_plan().json()['id']
+        for cid in ['1142_1', '1142_2']:
+            self.post_json(f'/api/simulation/plans/{plan_id}/courses/',
+                           {'course_id': cid, 'visible': True})
+
+        meta = os.path.join(tempfile.mkdtemp(), 'crawl.json')
+        with open(meta, 'w') as f:
+            json.dump({'semester': '1142', 'semesterDataFile': '1142/new/all.json',
+                       'courseIds': ['1142_1']}, f)
+        call_command('updatesem', meta)
+
+        res = self.client.get(f'/api/simulation/plans/{plan_id}/')
+        self.assertEqual(res.json()['courses'], [{'course_id': '1142_1', 'visible': True}])
 
     def test_clear_and_delete(self):
         plan_id = self.create_plan().json()['id']

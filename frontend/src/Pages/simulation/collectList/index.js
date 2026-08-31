@@ -81,6 +81,7 @@ class CollectList extends React.Component {
                 </div>
                 <div>
                     <CourseList courseListItems={Array.from(courseIds).map(ele => allCourses[ele])
+                        .filter(Boolean)  // a collected course may no longer exist in the database
                         .filter(ele => filter === '' | ele.cos_cname.indexOf(filter) !== -1)
                         .sort((a, b) => typeOrder.indexOf(a.cos_type) - typeOrder.indexOf(b.cos_type))
                         .map(ele =>
