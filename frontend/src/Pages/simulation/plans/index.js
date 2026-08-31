@@ -12,6 +12,7 @@ import useAxios from 'axios-hooks'
 import { useSnackbar } from 'notistack'
 import { createPlan, deletePlan, fetchPlans, updatePlan } from '../../../Redux/Actions/index'
 import { semesterToText } from '../../../Util/dataUtil/semester'
+import { app_url } from '../../../Util/dev'
 
 const NAME_MAX_LENGTH = 30
 
@@ -149,7 +150,7 @@ const Plans = ({ createPlan, updatePlan, deletePlan }) => {
                 </Typography>}
             <List>
                 {plans && plans.map(plan => (
-                    <ListItem key={plan.id} button component="a" href={`/simulation/plan/${plan.id}`}>
+                    <ListItem key={plan.id} button component="a" href={app_url(`/simulation/plan/${plan.id}`)}>
                         <ListItemText
                             primary={plan.name}
                             secondary={`參考 ${semesterToText(plan.ref_semester)}`}

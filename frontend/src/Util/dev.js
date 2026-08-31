@@ -8,3 +8,7 @@ export const url_base =
 export const api_url = (url) => {
   return url_base + url;
 };
+
+// In-app link. Absolute paths break when the site is served from a subpath
+// (e.g. GitHub Pages at /nctucourse), so prefix them with the public url.
+export const app_url = (path) => (process.env.PUBLIC_URL || "") + path;

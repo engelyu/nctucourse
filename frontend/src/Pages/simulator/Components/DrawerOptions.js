@@ -3,6 +3,7 @@ import { DeleteForever, FiberNew, GetApp, ImportExport, Input, PanTool, Sort, Su
 import React, { useContext } from "react"
 import styled from "styled-components"
 import { SimulatorContext, SimulatorPropsContext } from "../Context"
+import { app_url } from '../../../Util/dev'
 
 const Base = styled.div`
     width: 285px;
@@ -108,7 +109,7 @@ const DrawerOptions = ({ open, onOpen, onClose }) => {
 
                     <Divider />
 
-                    <ListItem button component="a" href="/gpa/import?redir=simulator">
+                    <ListItem button component="a" href={app_url("/gpa/import?redir=simulator")}>
                         <ListItemIcon>
                             <Input />
                         </ListItemIcon>

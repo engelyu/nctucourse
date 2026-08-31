@@ -3,6 +3,7 @@ import { Container, Typography, Button, Paper, Grid } from '@material-ui/core';
 import nctu_gpa_rule from '../../Resources/nctu_gpa_rule.PNG'
 import * as gpaTool from '../../Util/dataUtil/gpa'
 import axios from 'axios';
+import { app_url } from '../../Util/dev'
 
 const ScorePapar = (props) => {
     return <Grid item xs={12} md={6}>
@@ -57,7 +58,7 @@ class Index extends React.Component {
                     提供 Overall GPA、Last 60 Credits 的成績試算，查看計算結果前必須先匯入您的歷史成績。
             </Typography>
                 <Button variant="contained" color="primary" style={{ marginLeft: 10 }}
-                    href="/gpa/import?redir=gpa"
+                    href={app_url("/gpa/import?redir=gpa")}
                 >匯入歷史成績</Button>
             </div>
             <div style={{ padding: '0 45px' }}>

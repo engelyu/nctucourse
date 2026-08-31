@@ -12,6 +12,7 @@ import { ConvertCourseType2StyleType, CourseTypeColorMap } from '../../../Util/s
 import { makeInfoPageUrl } from '../../../Util/dataUtil/course'
 import { removeCollectCourse, toggleCollectCourseVisible, searchTimeCourses } from '../../../Redux/Actions/index'
 import { Button } from '@material-ui/core';
+import { app_url } from '../../../Util/dev'
 
 const styles = theme => ({
     root: {
@@ -183,7 +184,7 @@ class TimeTable extends React.Component {
                     <Typography>總計: {credits}學分/{hours}小時</Typography>
                     {/* 預排課表不在真實學期的課程資料庫裡，匯出頁無法以 sem 取得，改用設定中的圖片匯出 */}
                     {!this.props.planName &&
-                        <Button href={`/simulation/export/?sem=${this.props.semester}`} style={{display: "inline", "float": "right"}}>匯出課表</Button>}
+                        <Button href={app_url(`/simulation/export/?sem=${this.props.semester}`)} style={{display: "inline", "float": "right"}}>匯出課表</Button>}
                 </div>
                 <table className={classes.table} border={1} id="timetable">
                     <thead>

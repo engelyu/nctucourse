@@ -21,6 +21,7 @@ import CourseTable from "./CourseTable";
 import useAxios from "axios-hooks";
 import { makeKey, shouldMerge } from "./utils";
 import axios from "axios";
+import { app_url } from '../../../Util/dev'
 
 const convertCourseToMap = (courses) => {
   const dict = {};
@@ -202,8 +203,8 @@ export default (props) => {
                     const redir = new URLSearchParams(
                       window.location.search
                     ).get("redir");
-                    if (redir) window.location.href = `/${redir}`;
-                    else window.location.href = "/";
+                    if (redir) window.location.href = app_url(`/${redir}`);
+                    else window.location.href = app_url("/");
                   })
                   .catch((err) => {
                     setLoading(false);

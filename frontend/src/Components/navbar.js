@@ -11,7 +11,8 @@ import { Hidden, Drawer, List, ListItem, Divider, ButtonBase, Menu, MenuItem, wi
 import logo256 from '../Resources/logo256.png'
 import KeyboardArrowDownIcon from '@material-ui/icons/KeyboardArrowDown';
 import { KeyboardArrowDown } from '@material-ui/icons';
-import { api_url } from '../Util/dev';
+import { api_url, app_url } from '../Util/dev';
+import { isStatic } from '../Util/staticApi';
 
 const useStyles = makeStyles((theme) => ({
     root: {
@@ -145,8 +146,8 @@ const NavProfile = withStyles(theme => ({
                     horizontal: 'right',
                 }}
             >
-                <NavMenuItem href="/profile">關於我</NavMenuItem>
-                <NavMenuItem href={api_url("/api/accounts/logout")}>Logout</NavMenuItem>
+                <NavMenuItem href={app_url("/profile")}>關於我</NavMenuItem>
+                {!isStatic && <NavMenuItem href={api_url("/api/accounts/logout")}>Logout</NavMenuItem>}
             </NavMenuDropdown>
         </>
     )
@@ -161,35 +162,35 @@ const Navbar = (props) => {
             <Hidden smDown>
                 <AppBar position="static">
                     <Toolbar className={classes.toolbar}>
-                        <ButtonBase href="/">
+                        <ButtonBase href={app_url("/")}>
                             <img src={logo256} className={classes.logo} alt="" />
                             <Typography variant="h6" className={classes.title}>
                                 交大課程助理
                             </Typography>
                         </ButtonBase>
                         <NavMenu text="模擬排課">
-                            <NavMenuItem href="/simulation">當期排課</NavMenuItem>
-                            <NavMenuItem href="/simulation/history">歷年課程</NavMenuItem>
-                            <NavMenuItem href="/simulation/plans">預排課表</NavMenuItem>
-                            <NavMenuItem href="/simulation/export">課表匯出</NavMenuItem>
+                            <NavMenuItem href={app_url("/simulation")}>當期排課</NavMenuItem>
+                            <NavMenuItem href={app_url("/simulation/history")}>歷年課程</NavMenuItem>
+                            <NavMenuItem href={app_url("/simulation/plans")}>預排課表</NavMenuItem>
+                            <NavMenuItem href={app_url("/simulation/export")}>課表匯出</NavMenuItem>
                         </NavMenu>
                         <NavMenu text="學分工具">
-                            <NavMenuItem color="inherit" href="/coursehistory">修課記錄</NavMenuItem>
-                            <NavMenuItem color="inherit" href="/gpa">GPA計算機</NavMenuItem>
-                            <NavMenuItem color="inherit" href="/simulator">學分模擬器</NavMenuItem>
+                            <NavMenuItem color="inherit" href={app_url("/coursehistory")}>修課記錄</NavMenuItem>
+                            <NavMenuItem color="inherit" href={app_url("/gpa")}>GPA計算機</NavMenuItem>
+                            <NavMenuItem color="inherit" href={app_url("/simulator")}>學分模擬器</NavMenuItem>
                         </NavMenu>
                         <NavMenu text="外部連結">
                             <NavMenuItem blank href="https://timetable.nycu.edu.tw/">課程時間表</NavMenuItem>
                             <NavMenuItem blank href="https://course.nycu.edu.tw/">選課系統</NavMenuItem>
                         </NavMenu>
-                        <Button color="inherit" href="/tutorial">使用介紹</Button>
+                        <Button color="inherit" href={app_url("/tutorial")}>使用介紹</Button>
                         <div className={classes.grow} />
                         {
                             user.is_anonymous
                                 ?
                                 <>
                                     {
-                                        window.location.pathname !== '/' && <Button color="inherit" href="/">Login</Button>
+                                        window.location.pathname !== '/' && <Button color="inherit" href={app_url("/")}>Login</Button>
                                     }
                                 </>
                                 : <NavProfile username={user.username} nickname={user.nickname} />
@@ -221,7 +222,7 @@ const Navbar = (props) => {
                                         window.location.pathname !== '/' &&
                                         <>
                                             <List>
-                                                <ListItem button onClick={() => window.location.href = "/"}>Login</ListItem>
+                                                <ListItem button onClick={() => window.location.href = app_url("/")}>Login</ListItem>
                                             </List>
                                             <Divider />
                                         </>
@@ -234,25 +235,25 @@ const Navbar = (props) => {
                                             <Avatar style={{ width: '28px', height: '28px', marginRight: '6px' }} />
                                             {user.nickname === '' ? user.username : user.nickname}
                                         </ListItem>
-                                        <ListItem button onClick={() => window.location.href = "/profile"}>關於我</ListItem>
-                                        <ListItem button onClick={() => window.location.href = api_url("/api/accounts/logout")}>Logout</ListItem>
+                                        <ListItem button onClick={() => window.location.href = app_url("/profile")}>關於我</ListItem>
+                                        {!isStatic && <ListItem button onClick={() => window.location.href = api_url("/api/accounts/logout")}>Logout</ListItem>}
                                     </List>
                                     <Divider />
                                 </>
                         }
                         <List>
                             <ListItem disabled >模擬排課</ListItem>
-                            <ListItem button onClick={() => window.location.href = "/simulation"}>當期排課</ListItem>
-                            <ListItem button onClick={() => window.location.href = "/simulation/history"}>歷年課程</ListItem>
-                            <ListItem button onClick={() => window.location.href = "/simulation/plans"}>預排課表</ListItem>
-                            <ListItem button onClick={() => window.location.href = "/simulation/export"}>課表匯出</ListItem>
+                            <ListItem button onClick={() => window.location.href = app_url("/simulation")}>當期排課</ListItem>
+                            <ListItem button onClick={() => window.location.href = app_url("/simulation/history")}>歷年課程</ListItem>
+                            <ListItem button onClick={() => window.location.href = app_url("/simulation/plans")}>預排課表</ListItem>
+                            <ListItem button onClick={() => window.location.href = app_url("/simulation/export")}>課表匯出</ListItem>
                         </List>
                         <Divider />
                         <List>
                             <ListItem disabled >學分工具</ListItem>
-                            <ListItem button onClick={() => window.location.href = "/coursehistory"}>修課記錄</ListItem>
-                            <ListItem button onClick={() => window.location.href = "/gpa"}>GPA計算機</ListItem>
-                            <ListItem button onClick={() => window.location.href = "/simulator"}>學分模擬器</ListItem>
+                            <ListItem button onClick={() => window.location.href = app_url("/coursehistory")}>修課記錄</ListItem>
+                            <ListItem button onClick={() => window.location.href = app_url("/gpa")}>GPA計算機</ListItem>
+                            <ListItem button onClick={() => window.location.href = app_url("/simulator")}>學分模擬器</ListItem>
                         </List>
                         <Divider />
                         <List>
@@ -262,7 +263,7 @@ const Navbar = (props) => {
                         </List>
                         <Divider />
                         <List>
-                            <ListItem button onClick={() => window.location.href = "/tutorial"}>使用介紹</ListItem>
+                            <ListItem button onClick={() => window.location.href = app_url("/tutorial")}>使用介紹</ListItem>
                         </List>
                     </div>
                 </Drawer>

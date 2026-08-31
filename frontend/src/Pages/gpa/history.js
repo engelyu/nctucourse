@@ -7,6 +7,7 @@ import FullLoading from '../../Components/FullLoading';
 import { useSnackbar } from 'notistack';
 
 import * as gpaTool from '../../Util/dataUtil/gpa'
+import { app_url } from '../../Util/dev'
 
 const History = () => {
     const [{ data, loading, error }] = useAxios(
@@ -24,7 +25,7 @@ const History = () => {
 
         <div style={{ marginBottom: theme.spacing(2) }}>
             <Button variant="contained" color="primary" style={{ marginLeft: 10 }}
-                href="/gpa/import?redir=coursehistory"
+                href={app_url("/gpa/import?redir=coursehistory")}
             >匯入歷史成績</Button>
         </div>
         <div style={{ marginBottom: theme.spacing(2) }}>

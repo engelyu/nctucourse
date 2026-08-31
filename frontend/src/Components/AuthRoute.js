@@ -2,6 +2,7 @@ import React from 'react'
 import { useSelector } from 'react-redux'
 import { FETCH_STATUS } from '../Redux/Actions/index'
 import { Route } from 'react-router-dom'
+import { app_url } from '../Util/dev'
 
 
 const AuthRoute = (props) => {
@@ -14,7 +15,7 @@ const AuthRoute = (props) => {
             return <Route {...props} />
         }
         else {
-            window.location.href = '/?info=1'
+            window.location.href = app_url('/?info=1')
             return <div></div>
         }
     }} />

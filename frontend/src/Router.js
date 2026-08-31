@@ -1,8 +1,9 @@
 import React from 'react'
-import { BrowserRouter, Switch, Route } from 'react-router-dom'
+import { BrowserRouter, Switch, Route, Redirect } from 'react-router-dom'
 import { connect } from 'react-redux'
 import Navbar from './Components/navbar'
-import { isMaintaining } from './Util/dev'
+import { isMaintaining, app_url } from './Util/dev'
+import { isStatic } from './Util/staticApi'
 import Maintain from './Components/Maintain'
 import FullLoading from './Components/FullLoading'
 import { FETCH_STATUS } from './Redux/Actions/index'
@@ -25,12 +26,15 @@ const Router = (props) => {
     else return (
         <React.Fragment>
             {FETCH_STATUS.FETCHING === props.userFetchStatus && <FullLoading show />}
-            <BrowserRouter>
+            <BrowserRouter basename={process.env.PUBLIC_URL}>
                 <div>
                     <Navbar />
                     <ErrorBoundary>
                         <Switch>
-                            <Route exact path='/' component={Login} />
+                            <Route exact path='/' render={() =>
+                                // Static mode has no login, so the landing page is the simulator.
+                                isStatic ? <Redirect to='/simulation' /> : <Login />
+                            } />
                             <Route exact path='/tutorial' component={TutorialPage} />
                             <AuthRoute exact path='/simulation' render={() => {
                                 let urlParams = new URLSearchParams(window.location.search);
@@ -59,7 +63,7 @@ const Router = (props) => {
                             <AuthRoute exact path='/simulator' component={Simulator} />
                             <AuthRoute exact path='/profile' component={Profile} />
                             <Route render={() => {
-                                window.location.pathname = '/'
+                                window.location.href = app_url('/')
                             }} />
                         </Switch>
                     </ErrorBoundary>
