@@ -18,6 +18,7 @@ import SimulationHistory from './Pages/simulation/history'
 import Profile from './Pages/profile'
 import TutorialPage from './Pages/tutorial'
 import PrettierTable from './Pages/simulation/prettiertable'
+import SimulationPlans from './Pages/simulation/plans'
 
 const Router = (props) => {
     if (isMaintaining) return <Maintain />
@@ -51,6 +52,10 @@ const Router = (props) => {
                             <AuthRoute exact path='/gpa/import' component={GPAImport} />
                             <AuthRoute exact path='/coursehistory' component={CourseHistory} />
                             <AuthRoute exact path='/simulation/history' component={SimulationHistory} />
+                            <AuthRoute exact path='/simulation/plans' component={SimulationPlans} />
+                            <AuthRoute exact path='/simulation/plan/:planId' render={({ match }) => (
+                                <Simulation key={match.params.planId} planId={match.params.planId} />
+                            )} />
                             <AuthRoute exact path='/simulator' component={Simulator} />
                             <AuthRoute exact path='/profile' component={Profile} />
                             <Route render={() => {

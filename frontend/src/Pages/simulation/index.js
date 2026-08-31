@@ -19,7 +19,7 @@ import TimeTable from './timetable'
 import CollectList from './collectList'
 import QueryPage from './query'
 import Setting from './setting'
-import { fetchDatabase } from '../../Redux/Actions/index'
+import { enterPlan, fetchDatabase, resetPlan } from '../../Redux/Actions/index'
 
 const styles = theme => ({
     root: {
@@ -92,7 +92,12 @@ class Index extends React.Component {
     }
 
     componentDidMount() {
-        this.props.fetchDatabase()
+        if (this.props.planId !== undefined) this.props.enterPlan()
+        else this.props.fetchDatabase()
+    }
+
+    componentWillUnmount() {
+        if (this.props.planId !== undefined) this.props.resetPlan()
     }
 
     handleTabSwitch(event, newValue) {
@@ -138,7 +143,10 @@ class Index extends React.Component {
                             </Grid>
                             <Grid item xs={12} lg={8} className={classes.grid}>
                                 <Paper className={classes.paper}>
-                                    <TimeTable semester={this.props.semester} />
+                                    <TimeTable
+                                        semester={this.props.semester}
+                                        planName={this.props.planName}
+                                    />
                                 </Paper>
                             </Grid>
                         </Grid>
@@ -149,8 +157,9 @@ class Index extends React.Component {
                         <Hidden xlDown={mobileIndex !== 0}><QueryPage /></Hidden>
                         <Hidden xlDown={mobileIndex !== 1}><CollectList /></Hidden>
                         <Hidden xlDown={mobileIndex !== 2}>
-                            <TimeTable 
+                            <TimeTable
                                 semester={this.props.semester}
+                                planName={this.props.planName}
                                 changeTabIndex={(newIndex) => this.setState({ mobileIndex: newIndex })}
                             />
                         </Hidden>
@@ -184,10 +193,13 @@ class Index extends React.Component {
 }
 
 const mapStateToProps = (state) => ({
+    planName: state.courseSim.plan.name
 })
 
 const mapDispatchToProps = (dispatch, ownProps) => ({
-    fetchDatabase: () => dispatch(fetchDatabase(ownProps.semester))
+    fetchDatabase: () => dispatch(fetchDatabase(ownProps.semester)),
+    enterPlan: () => dispatch(enterPlan(ownProps.planId)),
+    resetPlan: () => dispatch(resetPlan())
 })
 
 export default connect(mapStateToProps, mapDispatchToProps)(withStyles(styles)(Index))

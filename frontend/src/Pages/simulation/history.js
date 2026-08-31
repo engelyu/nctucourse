@@ -2,6 +2,7 @@ import React, { useEffect } from "react";
 import { Container, Typography, Link } from "@material-ui/core";
 import useAxios from 'axios-hooks'
 import { useSnackbar } from "notistack";
+import { semesterToText } from "../../Util/dataUtil/semester";
 
 const HistoryLink = (props) => (
   <div style={{ marginTop: 5 }}>
@@ -15,12 +16,6 @@ const HistoryLink = (props) => (
 
   </div>
 )
-
-const toText = sem => {
-  let s = sem[sem.length - 1]
-  let mapp = { '1': '上學期', '2': '下學期', 'X': '暑期' }
-  return`${sem.substr(0, 3)}學年度${mapp[s]}`
-}
 
 const History = () => {
   let url = `/api/simulation/semesters/`
@@ -41,7 +36,7 @@ const History = () => {
       {
         data && (
           data.map(sem => (
-            <HistoryLink text={toText(sem)} href={`/simulation?sem=${sem}`} />
+            <HistoryLink key={sem} text={semesterToText(sem)} href={`/simulation?sem=${sem}`} />
           ))
         )
       }

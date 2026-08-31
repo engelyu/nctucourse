@@ -175,10 +175,14 @@ class TimeTable extends React.Component {
 
         return (<div className={classes.root}>
             <div className={classes.tableContainer}>
-                { this.props.semester && <Typography variant="h4">歷年課程：{this.props.semester}</Typography>}
+                { this.props.planName
+                    ? <Typography variant="h4">預排課表：{this.props.planName}</Typography>
+                    : this.props.semester && <Typography variant="h4">歷年課程：{this.props.semester}</Typography>}
                 <div style={{display: "flex", alignItems: "center", justifyContent: "space-between"}}>
                     <Typography>總計: {credits}學分/{hours}小時</Typography>
-                    <Button href={`/simulation/export/?sem=${this.props.semester}`} style={{display: "inline", "float": "right"}}>匯出課表</Button>
+                    {/* 預排課表不在真實學期的課程資料庫裡，匯出頁無法以 sem 取得，改用設定中的圖片匯出 */}
+                    {!this.props.planName &&
+                        <Button href={`/simulation/export/?sem=${this.props.semester}`} style={{display: "inline", "float": "right"}}>匯出課表</Button>}
                 </div>
                 <table className={classes.table} border={1} id="timetable">
                     <thead>

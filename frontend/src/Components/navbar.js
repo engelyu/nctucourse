@@ -170,6 +170,7 @@ const Navbar = (props) => {
                         <NavMenu text="模擬排課">
                             <NavMenuItem href="/simulation">當期排課</NavMenuItem>
                             <NavMenuItem href="/simulation/history">歷年課程</NavMenuItem>
+                            <NavMenuItem href="/simulation/plans">預排課表</NavMenuItem>
                             <NavMenuItem href="/simulation/export">課表匯出</NavMenuItem>
                         </NavMenu>
                         <NavMenu text="學分工具">
@@ -243,6 +244,7 @@ const Navbar = (props) => {
                             <ListItem disabled >模擬排課</ListItem>
                             <ListItem button onClick={() => window.location.href = "/simulation"}>當期排課</ListItem>
                             <ListItem button onClick={() => window.location.href = "/simulation/history"}>歷年課程</ListItem>
+                            <ListItem button onClick={() => window.location.href = "/simulation/plans"}>預排課表</ListItem>
                             <ListItem button onClick={() => window.location.href = "/simulation/export"}>課表匯出</ListItem>
                         </List>
                         <Divider />

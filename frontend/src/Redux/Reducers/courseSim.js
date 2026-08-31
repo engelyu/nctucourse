@@ -26,8 +26,16 @@ const initialState = {
         showRoomCode: false,
         newTimeCode: true,
     },
+    plan: {
+        id: null,
+        name: '',
+        refSemester: null,
+        status: FETCH_STATUS.IDLE,
+    },
     hoverCourseId: '',
 }
+
+const initialPlan = { ...initialState.plan }
 
 export default handleActions({
     COURSE_SIM: {
@@ -118,6 +126,17 @@ export default handleActions({
                     ...action.payload
                 }
             })
+        },
+        PLAN: {
+            STORE: (state, action) => ({
+                ...state, plan: {
+                    ...state.plan,
+                    ...action.payload
+                }
+            }),
+            RESET: (state) => ({
+                ...state, plan: { ...initialPlan }
+            }),
         },
         HOVER_COURSE: (state, action) => ({
             ...state,

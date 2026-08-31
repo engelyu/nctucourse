@@ -100,6 +100,10 @@ export const actions = createActions({
         SETTINGS: {
             STORE: null,
         },
+        PLAN: {
+            STORE: null,
+            RESET: null,
+        },
         HOVER_COURSE: null,
         CANCEL_HOVER_COURSE: null,
     },
@@ -157,7 +161,7 @@ export const fetchDatabase = (semester) => (dispatch) => {
                             categoryMap: cache.category_map,
                         })
                     );
-                    dispatch(fetchUserCollect(semester));
+                    dispatch(loadCollect(semester));
                     return { sem: null, url: null };
                 } catch {}
             }
@@ -188,7 +192,7 @@ export const fetchDatabase = (semester) => (dispatch) => {
                         JSON.stringify(res.data)
                     );
                 }
-                dispatch(fetchUserCollect(semester));
+                dispatch(loadCollect(semester));
             });
         })
         .catch((err) => {
@@ -207,7 +211,7 @@ export const fetchDatabase = (semester) => (dispatch) => {
                             .reduce(makeObjFromArray("cos_id"), {}),
                     })
                 );
-                dispatch(fetchUserCollect(semester));
+                dispatch(loadCollect(semester));
             } else {
                 dispatch(
                     actions.courseSim.database.store({
@@ -250,6 +254,36 @@ export const fetchUserInfo = () => (dispatch) => {
         });
 };
 
+// A plan ("預排課表") is a free-form, user-named timetable. It borrows its
+// course pool from a past semester but keeps its own course list, so the
+// collect/timetable endpoints are swapped for the plan-scoped ones below.
+const activePlanId = (getState) => getState().courseSim.plan.id;
+
+const collectUrl = (getState) => {
+    const planId = activePlanId(getState);
+    if (planId != null) return `/api/simulation/plans/${planId}/courses/`;
+    return "/api/simulation/user/";
+};
+
+export const loadCollect = (semester) => (dispatch, getState) => {
+    const planId = activePlanId(getState);
+    if (planId != null) dispatch(fetchPlanCourses(planId));
+    else dispatch(fetchUserCollect(semester));
+};
+
+const storeCollectedCourses = (dispatch, courses) => {
+    let collect = [];
+    let timetable = [];
+    for (let course of courses) {
+        collect.push(course["course_id"]);
+        if (course["visible"]) {
+            timetable.push(course["course_id"]);
+        }
+    }
+    dispatch(actions.courseSim.collect.courseIds.store(collect));
+    dispatch(actions.courseSim.timetable.courseIds.store(timetable));
+};
+
 export const fetchUserCollect = (semester) => (dispatch) => {
     let url = "/api/simulation/user/";
     if (semester !== undefined) {
@@ -257,25 +291,13 @@ export const fetchUserCollect = (semester) => (dispatch) => {
     }
     axios
         .get(url)
-        .then((res) => {
-            const { courses } = res.data;
-            let collect = [];
-            let timetable = [];
-            for (let course of courses) {
-                collect.push(course["course_id"]);
-                if (course["visible"]) {
-                    timetable.push(course["course_id"]);
-                }
-            }
-            dispatch(actions.courseSim.collect.courseIds.store(collect));
-            dispatch(actions.courseSim.timetable.courseIds.store(timetable));
-        })
-        .catch((err) => console.log);
+        .then((res) => storeCollectedCourses(dispatch, res.data.courses))
+        .catch((err) => console.log(err));
 };
 
-export const addCollectCourse = (courseId, visible) => (dispatch) => {
+export const addCollectCourse = (courseId, visible) => (dispatch, getState) => {
     axios
-        .post("/api/simulation/user/", { course_id: courseId, visible })
+        .post(collectUrl(getState), { course_id: courseId, visible })
         .then(() => {
             dispatch(actions.courseSim.collect.courseIds.add(courseId));
             dispatch(actions.courseSim.timetable.courseIds.add(courseId));
@@ -289,9 +311,9 @@ export const addCollectCourse = (courseId, visible) => (dispatch) => {
         });
 };
 
-export const removeCollectCourse = (courseId) => (dispatch) => {
+export const removeCollectCourse = (courseId) => (dispatch, getState) => {
     axios
-        .delete("/api/simulation/user/", { data: { course_id: courseId } })
+        .delete(collectUrl(getState), { data: { course_id: courseId } })
         .then(() => {
             dispatch(actions.courseSim.collect.courseIds.remove(courseId));
             dispatch(actions.courseSim.timetable.courseIds.remove(courseId));
@@ -307,9 +329,9 @@ export const removeCollectCourse = (courseId) => (dispatch) => {
         });
 };
 
-export const toggleCollectCourseVisible = (courseId, visible) => (dispatch) => {
+export const toggleCollectCourseVisible = (courseId, visible) => (dispatch, getState) => {
     axios
-        .post("/api/simulation/user/", { course_id: courseId, visible })
+        .post(collectUrl(getState), { course_id: courseId, visible })
         .then(() => {
             if (visible)
                 dispatch(actions.courseSim.timetable.courseIds.add(courseId));
@@ -333,10 +355,16 @@ export const toggleCollectCourseVisible = (courseId, visible) => (dispatch) => {
         });
 };
 
-export const clearAllUserCourse = (semester) => (dispatch) => {
-    let url = "/api/simulation/user/clear/";
-    if (semester !== undefined) {
-        url += `?sem=${semester}`;
+export const clearAllUserCourse = (semester) => (dispatch, getState) => {
+    const planId = activePlanId(getState);
+    let url;
+    if (planId != null) {
+        url = `/api/simulation/plans/${planId}/clear/`;
+    } else {
+        url = "/api/simulation/user/clear/";
+        if (semester !== undefined) {
+            url += `?sem=${semester}`;
+        }
     }
     axios
         .get(url)
@@ -425,3 +453,63 @@ export const setNickname = (nick) => (dispatch) => {
         dispatch(actions.user.store({ nickname: nick }));
     });
 };
+
+export const resetPlan = () => (dispatch) => {
+    dispatch(actions.courseSim.plan.reset());
+};
+
+export const enterPlan = (planId) => (dispatch) => {
+    dispatch(
+        actions.courseSim.plan.store({ id: planId, status: FETCH_STATUS.FETCHING })
+    );
+    return axios
+        .get(`/api/simulation/plans/${planId}/`)
+        .then((res) => {
+            dispatch(
+                actions.courseSim.plan.store({
+                    id: res.data.id,
+                    name: res.data.name,
+                    refSemester: res.data.ref_semester,
+                    status: FETCH_STATUS.SUCCESS,
+                })
+            );
+            // Loads the course pool of the reference semester, which in turn
+            // dispatches loadCollect -> fetchPlanCourses for this plan.
+            dispatch(fetchDatabase(res.data.ref_semester));
+        })
+        .catch((err) => {
+            console.log(err);
+            dispatch(actions.courseSim.plan.store({ status: FETCH_STATUS.FAIL }));
+        });
+};
+
+export const fetchPlanCourses = (planId) => (dispatch) => {
+    axios
+        .get(`/api/simulation/plans/${planId}/`)
+        .then((res) => storeCollectedCourses(dispatch, res.data.courses))
+        .catch((err) => console.log(err));
+};
+
+export const fetchPlans = () =>
+    axios.get("/api/simulation/plans/").then((res) => res.data.plans);
+
+export const createPlan = (name, refSemester) => () =>
+    axios
+        .post("/api/simulation/plans/", { name, ref_semester: refSemester })
+        .then((res) => res.data);
+
+export const updatePlan = (planId, patch) => (dispatch, getState) =>
+    axios.patch(`/api/simulation/plans/${planId}/`, patch).then((res) => {
+        if (activePlanId(getState) === planId) {
+            dispatch(
+                actions.courseSim.plan.store({
+                    name: res.data.name,
+                    refSemester: res.data.ref_semester,
+                })
+            );
+        }
+        return res.data;
+    });
+
+export const deletePlan = (planId) => () =>
+    axios.delete(`/api/simulation/plans/${planId}/`);
