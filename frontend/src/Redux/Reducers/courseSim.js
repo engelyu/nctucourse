@@ -32,6 +32,9 @@ const initialState = {
         refSemester: null,
         status: FETCH_STATUS.IDLE,
     },
+    custom: {
+        courses: []
+    },
     hoverCourseId: '',
 }
 
@@ -136,6 +139,11 @@ export default handleActions({
             }),
             RESET: (state) => ({
                 ...state, plan: { ...initialPlan }
+            }),
+        },
+        CUSTOM: {
+            STORE: (state, action) => ({
+                ...state, custom: { courses: action.payload }
             }),
         },
         HOVER_COURSE: (state, action) => ({

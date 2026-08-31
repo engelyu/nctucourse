@@ -11,4 +11,6 @@ urlpatterns = [
     path('plans/<int:pk>/', views.PlanDetailView.as_view()),
     path('plans/<int:pk>/courses/', views.PlanCourseView.as_view()),
     path('plans/<int:pk>/clear/', views.PlanClearView.as_view()),
+    path('custom/', views.CustomCourseListView.as_view()),
+    path('custom/<int:pk>/', views.CustomCourseDetailView.as_view()),
 ]

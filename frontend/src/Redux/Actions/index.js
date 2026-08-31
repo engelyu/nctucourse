@@ -104,6 +104,9 @@ export const actions = createActions({
             STORE: null,
             RESET: null,
         },
+        CUSTOM: {
+            STORE: null,
+        },
         HOVER_COURSE: null,
         CANCEL_HOVER_COURSE: null,
     },
@@ -269,7 +272,41 @@ export const loadCollect = (semester) => (dispatch, getState) => {
     const planId = activePlanId(getState);
     if (planId != null) dispatch(fetchPlanCourses(planId));
     else dispatch(fetchUserCollect(semester));
+    dispatch(fetchCustomCourses(semester));
 };
+
+// Custom courses are ordinary course objects that happen to come from the
+// user rather than the crawler, so they are merged into the course database
+// and the timetable picks them up with no further plumbing.
+const customScopeQuery = (getState, semester) => {
+    const planId = activePlanId(getState);
+    if (planId != null) return `?plan=${planId}`;
+    return semester !== undefined ? `?sem=${semester}` : "";
+};
+
+const CUSTOM_PREFIX = "custom_";
+
+export const customCourseToCourse = (c) => ({
+    cos_id: CUSTOM_PREFIX + c.id,
+    cos_cname: c.name,
+    cos_code: "",
+    cos_credit: String(c.credit || 0),
+    cos_hours: "0",
+    cos_type: "自訂",
+    memo: "",
+    num_limit: "",
+    reg_num: "",
+    teacher: c.teacher || "",
+    cos_time: c.room ? `${c.time}-${c.room}` : c.time,
+    brief_code: "",
+    lang: 0,
+    meta: {},
+    color: c.color,
+    custom: c,
+});
+
+export const isCustomCourseId = (courseId) =>
+    typeof courseId === "string" && courseId.startsWith(CUSTOM_PREFIX);
 
 const storeCollectedCourses = (dispatch, courses) => {
     let collect = [];
@@ -513,3 +550,52 @@ export const updatePlan = (planId, patch) => (dispatch, getState) =>
 
 export const deletePlan = (planId) => () =>
     axios.delete(`/api/simulation/plans/${planId}/`);
+
+const mergeCustomCourses = (dispatch, getState, list) => {
+    dispatch(actions.courseSim.custom.store(list));
+
+    const courses = { ...getState().courseSim.database.courses };
+    // drop the previous generation before merging, so edits and deletes stick
+    for (const id of Object.keys(courses)) {
+        if (isCustomCourseId(id)) delete courses[id];
+    }
+    for (const c of list) {
+        const course = customCourseToCourse(c);
+        courses[course.cos_id] = course;
+    }
+    dispatch(actions.courseSim.database.store({ courses }));
+
+    const collect = new Set(
+        [...getState().courseSim.collect.courseIds].filter((id) => !isCustomCourseId(id))
+    );
+    const timetable = new Set(
+        [...getState().courseSim.timetable.courseIds].filter((id) => !isCustomCourseId(id))
+    );
+    for (const c of list) {
+        collect.add(CUSTOM_PREFIX + c.id);
+        if (c.visible) timetable.add(CUSTOM_PREFIX + c.id);
+    }
+    dispatch(actions.courseSim.collect.courseIds.store(collect));
+    dispatch(actions.courseSim.timetable.courseIds.store(timetable));
+};
+
+export const fetchCustomCourses = (semester) => (dispatch, getState) =>
+    axios
+        .get(`/api/simulation/custom/${customScopeQuery(getState, semester)}`)
+        .then((res) => mergeCustomCourses(dispatch, getState, res.data.courses))
+        .catch((err) => console.log(err));
+
+export const addCustomCourse = (course, semester) => (dispatch, getState) =>
+    axios
+        .post(`/api/simulation/custom/${customScopeQuery(getState, semester)}`, course)
+        .then(() => dispatch(fetchCustomCourses(semester)));
+
+export const updateCustomCourse = (id, course, semester) => (dispatch, getState) =>
+    axios
+        .patch(`/api/simulation/custom/${id}/`, course)
+        .then(() => dispatch(fetchCustomCourses(semester)));
+
+export const removeCustomCourse = (id, semester) => (dispatch, getState) =>
+    axios
+        .delete(`/api/simulation/custom/${id}/`)
+        .then(() => dispatch(fetchCustomCourses(semester)));
