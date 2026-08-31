@@ -106,7 +106,7 @@ const TimeTableCourse = withStyles(courseStyles)((props) => {
             aria-haspopup="true"
         >
             <Tooltip title={`${course.cos_cname} ${course.teacher}/${showRoomCode ? roomCode : roomName}`} arrow>
-                <div className={classes.course} style={{ backgroundColor: CourseTypeColorMap[ConvertCourseType2StyleType(course.cos_type)] }}>
+                <div className={classes.course} style={{ backgroundColor: course.color || CourseTypeColorMap[ConvertCourseType2StyleType(course.cos_type)] }}>
                     <span className={clsx(classes.textSpan, hideOverflowText ? classes.textSpanHide : "")}>
                         <Typography display="inline" variant="body2">{course.cos_cname} </Typography>
                         <div className={hideOverflowText ? classes.textTeacherHide : ""}>

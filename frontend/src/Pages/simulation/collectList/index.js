@@ -11,7 +11,11 @@ import FormControl from '@material-ui/core/FormControl';
 import ClearIcon from '@material-ui/icons/Clear';
 import CourseList from '../../../Components/CourseList'
 import CourseListItem from '../../../Components/CourseListItem'
-import { removeCollectCourse, toggleCollectCourseVisible } from '../../../Redux/Actions/index'
+import CustomCourseDialog from '../../../Components/CustomCourseDialog'
+import AddIcon from '@material-ui/icons/Add'
+import EditIcon from '@material-ui/icons/Edit'
+import Button from '@material-ui/core/Button'
+import { removeCollectCourse, toggleCollectCourseVisible, addCustomCourse, updateCustomCourse, removeCustomCourse } from '../../../Redux/Actions/index'
 
 
 const styles = (theme) => ({
@@ -38,6 +42,7 @@ class CollectList extends React.Component {
             filter: ''
         }
         this.handleChange = this.handleChange.bind(this)
+        this.state = { ...this.state, customOpen: false, editing: null }
     }
 
     handleChange(key) {
@@ -49,8 +54,9 @@ class CollectList extends React.Component {
     }
 
     render() {
-        const { classes, courseIds, allCourses, removeCourse, timetableIds, setTimetableVisible } = this.props
-        const { filter } = this.state
+        const { classes, courseIds, allCourses, removeCourse, timetableIds, setTimetableVisible,
+            addCustom, updateCustom, removeCustom } = this.props
+        const { filter, customOpen, editing } = this.state
         const typeOrder = ['必修', '選修', '通識', '體育', '外語', '軍訓']
         return (
             <div className={classes.root}>
@@ -88,21 +94,31 @@ class CollectList extends React.Component {
                             <CourseListItem
                                 key={ele.cos_id}
                                 course={ele}
-                                multiAction={2}
+                                multiAction={ele.custom ? 3 : 2}
                                 actions={
                                     <React.Fragment>
                                         {
                                             timetableIds.has(ele.cos_id) ?
-                                                (<IconButton edge="end" onClick={() => setTimetableVisible(ele.cos_id, false)}>
+                                                (<IconButton edge="end" onClick={() => ele.custom
+                                                    ? updateCustom(ele.custom.id, { ...ele.custom, visible: false })
+                                                    : setTimetableVisible(ele.cos_id, false)}>
                                                     <VisibilityIcon />
                                                 </IconButton>) :
-                                                (<IconButton edge="end" onClick={() => setTimetableVisible(ele.cos_id, true)}>
+                                                (<IconButton edge="end" onClick={() => ele.custom
+                                                    ? updateCustom(ele.custom.id, { ...ele.custom, visible: true })
+                                                    : setTimetableVisible(ele.cos_id, true)}>
                                                     <VisibilityOffIcon />
                                                 </IconButton>
                                                 )
 
                                         }
-                                        <IconButton edge="end" onClick={() => removeCourse(ele.cos_id)}>
+                                        {ele.custom &&
+                                            <IconButton edge="end"
+                                                onClick={() => this.setState({ editing: ele.custom, customOpen: true })}>
+                                                <EditIcon />
+                                            </IconButton>}
+                                        <IconButton edge="end" onClick={() =>
+                                            ele.custom ? removeCustom(ele.custom.id) : removeCourse(ele.cos_id)}>
                                             <DeleteIcon />
                                         </IconButton>
                                     </React.Fragment>
@@ -110,6 +126,22 @@ class CollectList extends React.Component {
                             />)}
                     />
                 </div>
+                <div style={{ padding: 8 }}>
+                    <Button fullWidth startIcon={<AddIcon />}
+                        onClick={() => this.setState({ editing: null, customOpen: true })}>
+                        新增自訂課程
+                    </Button>
+                </div>
+                <CustomCourseDialog
+                    open={customOpen}
+                    initial={editing}
+                    onClose={() => this.setState({ customOpen: false, editing: null })}
+                    onSubmit={(course) => {
+                        const done = () => this.setState({ customOpen: false, editing: null })
+                        return (editing ? updateCustom(editing.id, course) : addCustom(course))
+                            .then(done)
+                    }}
+                />
             </div>
         );
     }
@@ -121,7 +153,10 @@ const mapStateToProps = (state) => ({
     allCourses: state.courseSim.database.courses
 })
 
-const mapDispatchToProps = (dispatch) => ({
+const mapDispatchToProps = (dispatch, ownProps) => ({
+    addCustom: (course) => dispatch(addCustomCourse(course, ownProps.semester)),
+    updateCustom: (id, course) => dispatch(updateCustomCourse(id, course, ownProps.semester)),
+    removeCustom: (id) => dispatch(removeCustomCourse(id, ownProps.semester)),
     removeCourse: (courseId) => {
         dispatch(removeCollectCourse(courseId))
     },

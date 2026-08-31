@@ -24,6 +24,9 @@ const useStyles = makeStyles((theme) => ({
     twoAction: {
         paddingRight: 96
     },
+    threeAction: {
+        paddingRight: 144
+    },
     cardRoot: {
         marginRight: theme.spacing(1),
         marginBottom: 1

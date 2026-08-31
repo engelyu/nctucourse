@@ -18,3 +18,14 @@ class SimPlanUpdateSerializer(serializers.Serializer):
     # ref_semester is fixed at creation: course ids are namespaced by their
     # source semester, so changing it would invalidate every collected course.
     name = serializers.CharField(max_length=30)
+
+
+class CustomCourseSerializer(serializers.Serializer):
+    id = serializers.IntegerField(read_only=True)
+    name = serializers.CharField(max_length=60)
+    teacher = serializers.CharField(max_length=60, allow_blank=True, required=False, default='')
+    time = serializers.CharField(max_length=60, allow_blank=True, required=False, default='')
+    room = serializers.CharField(max_length=60, allow_blank=True, required=False, default='')
+    credit = serializers.FloatField(required=False, default=0)
+    color = serializers.RegexField(r'^#[0-9a-fA-F]{6}$', required=False, default='#aebed1')
+    visible = serializers.BooleanField(required=False, default=True)

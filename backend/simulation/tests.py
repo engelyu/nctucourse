@@ -142,3 +142,80 @@ class SimPlanApiTests(TestCase):
 
         self.assertEqual(self.client.delete(f'/api/simulation/plans/{plan_id}/').status_code, 200)
         self.assertEqual(models.SimPlan.objects.count(), 0)
+
+
+class SimCustomCourseApiTests(TestCase):
+    def setUp(self):
+        User = get_user_model()
+        self.user = User.objects.create_user('tester', password='pw')
+        self.other = User.objects.create_user('other', password='pw')
+        models.SemesterCoursesMapping.objects.create(semester='1142', file='1142.json')
+        self.client.force_login(self.user)
+
+    def post_json(self, url, data):
+        return self.client.post(url, data=json.dumps(data), content_type='application/json')
+
+    def make_plan(self):
+        return self.post_json('/api/simulation/plans/',
+                              {'name': 'p', 'ref_semester': '1142'}).json()['id']
+
+    def test_create_for_semester(self):
+        res = self.post_json('/api/simulation/custom/?sem=1142',
+                             {'name': '清大 演算法', 'time': '3EF', 'color': '#ff0000',
+                              'credit': 3, 'teacher': '某老師', 'room': '資電館'})
+        self.assertEqual(res.status_code, 201)
+        self.assertEqual(res.json()['name'], '清大 演算法')
+        self.assertEqual(res.json()['color'], '#ff0000')
+
+        listed = self.client.get('/api/simulation/custom/?sem=1142').json()['courses']
+        self.assertEqual(len(listed), 1)
+
+    def test_semester_and_plan_scopes_are_separate(self):
+        plan_id = self.make_plan()
+        self.post_json('/api/simulation/custom/?sem=1142', {'name': 'sem course'})
+        self.post_json(f'/api/simulation/custom/?plan={plan_id}', {'name': 'plan course'})
+
+        sem = self.client.get('/api/simulation/custom/?sem=1142').json()['courses']
+        plan = self.client.get(f'/api/simulation/custom/?plan={plan_id}').json()['courses']
+        self.assertEqual([c['name'] for c in sem], ['sem course'])
+        self.assertEqual([c['name'] for c in plan], ['plan course'])
+
+    def test_reject_blank_name(self):
+        res = self.post_json('/api/simulation/custom/?sem=1142', {'name': '   '})
+        self.assertEqual(res.status_code, 400)
+
+    def test_reject_bad_colour(self):
+        res = self.post_json('/api/simulation/custom/?sem=1142',
+                             {'name': 'x', 'color': 'red'})
+        self.assertEqual(res.status_code, 400)
+
+    def test_unknown_plan_is_404(self):
+        res = self.post_json('/api/simulation/custom/?plan=9999', {'name': 'x'})
+        self.assertEqual(res.status_code, 404)
+
+    def test_edit_and_delete(self):
+        cid = self.post_json('/api/simulation/custom/?sem=1142',
+                             {'name': 'x', 'time': '3EF'}).json()['id']
+
+        res = self.client.patch(f'/api/simulation/custom/{cid}/',
+                                data=json.dumps({'name': 'y', 'time': '4AB',
+                                                 'color': '#00ff00'}),
+                                content_type='application/json')
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(res.json()['name'], 'y')
+        self.assertEqual(res.json()['time'], '4AB')
+
+        self.assertEqual(self.client.delete(f'/api/simulation/custom/{cid}/').status_code, 200)
+        self.assertEqual(models.SimCustomCourse.objects.count(), 0)
+
+    def test_custom_courses_are_private(self):
+        cid = self.post_json('/api/simulation/custom/?sem=1142', {'name': 'x'}).json()['id']
+        self.client.force_login(self.other)
+        self.assertEqual(self.client.delete(f'/api/simulation/custom/{cid}/').status_code, 404)
+        self.assertEqual(self.client.get('/api/simulation/custom/?sem=1142').json()['courses'], [])
+
+    def test_deleting_a_plan_removes_its_custom_courses(self):
+        plan_id = self.make_plan()
+        self.post_json(f'/api/simulation/custom/?plan={plan_id}', {'name': 'x'})
+        self.client.delete(f'/api/simulation/plans/{plan_id}/')
+        self.assertEqual(models.SimCustomCourse.objects.count(), 0)
