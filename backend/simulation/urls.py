@@ -7,4 +7,8 @@ urlpatterns = [
     path('all/', views.AllCoursesUrlView.as_view()),
     path('semesters/', views.SemesterListView.as_view()),
     path('export/collect_theme/', views.TimetableExportCollectThemeView.as_view()),
+    path('plans/', views.PlanListView.as_view()),
+    path('plans/<int:pk>/', views.PlanDetailView.as_view()),
+    path('plans/<int:pk>/courses/', views.PlanCourseView.as_view()),
+    path('plans/<int:pk>/clear/', views.PlanClearView.as_view()),
 ]
