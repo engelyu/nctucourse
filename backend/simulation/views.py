@@ -152,25 +152,14 @@ class PlanDetailView(LoginRequiredMixin, View):
         if not parser.is_valid():
             return http.HttpResponseBadRequest()
 
-        if 'name' in parser.validated_data:
-            name = parser.validated_data['name'].strip()
-            if not name:
-                return http.HttpResponseBadRequest()
-            if models.SimPlan.objects.filter(
-                    user=request.user, name=name).exclude(pk=plan.pk).exists():
-                return http.JsonResponse({'error': 'duplicated_name'}, status=409)
-            plan.name = name
+        name = parser.validated_data['name'].strip()
+        if not name:
+            return http.HttpResponseBadRequest()
+        if models.SimPlan.objects.filter(
+                user=request.user, name=name).exclude(pk=plan.pk).exists():
+            return http.JsonResponse({'error': 'duplicated_name'}, status=409)
 
-        if 'ref_semester' in parser.validated_data:
-            ref_semester = parser.validated_data['ref_semester']
-            if not models.SemesterCoursesMapping.objects.filter(semester=ref_semester).exists():
-                return http.HttpResponseBadRequest()
-            if ref_semester != plan.ref_semester:
-                # The course pool changed, so the collected course ids
-                # (which are namespaced by their source semester) no longer apply.
-                plan.courses.all().delete()
-                plan.ref_semester = ref_semester
-
+        plan.name = name
         plan.save()
         return http.JsonResponse(serializers.SimPlanSerializer(plan).data)
 

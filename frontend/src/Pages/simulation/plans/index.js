@@ -15,7 +15,9 @@ import { semesterToText } from '../../../Util/dataUtil/semester'
 
 const NAME_MAX_LENGTH = 30
 
-const PlanDialog = ({ open, title, semesters, initialName, initialSemester, onClose, onSubmit }) => {
+// `lockedSemester` is set when editing: the reference semester is fixed at
+// creation, so it is shown for context but cannot be picked again.
+const PlanDialog = ({ open, title, semesters, initialName, lockedSemester, onClose, onSubmit }) => {
     const [name, setName] = useState('')
     const [semester, setSemester] = useState('')
     const [submitting, setSubmitting] = useState(false)
@@ -23,12 +25,12 @@ const PlanDialog = ({ open, title, semesters, initialName, initialSemester, onCl
     useEffect(() => {
         if (open) {
             setName(initialName || '')
-            setSemester(initialSemester || (semesters.length > 0 ? semesters[0] : ''))
+            setSemester(semesters.length > 0 ? semesters[0] : '')
             setSubmitting(false)
         }
-    }, [open, initialName, initialSemester, semesters])
+    }, [open, initialName, semesters])
 
-    const canSubmit = name.trim() !== '' && semester !== '' && !submitting
+    const canSubmit = name.trim() !== '' && (lockedSemester || semester !== '') && !submitting
 
     const handleSubmit = () => {
         if (!canSubmit) return
@@ -50,19 +52,28 @@ const PlanDialog = ({ open, title, semesters, initialName, initialSemester, onCl
                     onChange={evt => setName(evt.target.value.slice(0, NAME_MAX_LENGTH))}
                     onKeyPress={evt => { if (evt.key === 'Enter') handleSubmit() }}
                 />
-                <TextField
-                    select
-                    fullWidth
-                    margin="dense"
-                    label="參考學期"
-                    value={semester}
-                    helperText="預排時可選課程的來源，之後仍可更換"
-                    onChange={evt => setSemester(evt.target.value)}
-                >
-                    {semesters.map(sem => (
-                        <MenuItem key={sem} value={sem}>{semesterToText(sem)}</MenuItem>
-                    ))}
-                </TextField>
+                {lockedSemester
+                    ? <TextField
+                        disabled
+                        fullWidth
+                        margin="dense"
+                        label="參考學期"
+                        value={semesterToText(lockedSemester)}
+                        helperText="建立後就固定了，要換請另外建一張"
+                    />
+                    : <TextField
+                        select
+                        fullWidth
+                        margin="dense"
+                        label="參考學期"
+                        value={semester}
+                        helperText="預排時可選課程的來源，建立後不能更換"
+                        onChange={evt => setSemester(evt.target.value)}
+                    >
+                        {semesters.map(sem => (
+                            <MenuItem key={sem} value={sem}>{semesterToText(sem)}</MenuItem>
+                        ))}
+                    </TextField>}
             </DialogContent>
             <DialogActions>
                 <Button onClick={onClose}>取消</Button>
@@ -103,15 +114,10 @@ const Plans = ({ createPlan, updatePlan, deletePlan }) => {
             .then(() => { setCreateOpen(false); reload() })
             .catch(reportError)
 
-    const handleEdit = (name, semester) => {
-        const clearsCourses = semester !== editing.ref_semester
-        if (clearsCourses &&
-            !window.confirm('更換參考學期會清空這張預排課表已選的課程，確定要更換嗎？'))
-            return
-        return updatePlan(editing.id, { name, ref_semester: semester })
+    const handleEdit = (name) =>
+        updatePlan(editing.id, { name })
             .then(() => { setEditing(null); reload() })
             .catch(reportError)
-    }
 
     const handleDelete = (plan) => {
         if (!window.confirm(`確定要刪除「${plan.name}」嗎？`)) return
@@ -149,7 +155,7 @@ const Plans = ({ createPlan, updatePlan, deletePlan }) => {
                             secondary={`參考 ${semesterToText(plan.ref_semester)}`}
                         />
                         <ListItemSecondaryAction>
-                            <IconButton edge="end" aria-label="編輯" onClick={() => setEditing(plan)}>
+                            <IconButton edge="end" aria-label="重新命名" onClick={() => setEditing(plan)}>
                                 <EditIcon />
                             </IconButton>
                             <IconButton edge="end" aria-label="刪除" onClick={() => handleDelete(plan)}>
@@ -168,10 +174,10 @@ const Plans = ({ createPlan, updatePlan, deletePlan }) => {
             />
             <PlanDialog
                 open={editing !== null}
-                title="編輯預排課表"
+                title="重新命名"
                 semesters={semesters || []}
                 initialName={editing ? editing.name : ''}
-                initialSemester={editing ? editing.ref_semester : ''}
+                lockedSemester={editing ? editing.ref_semester : ''}
                 onClose={() => setEditing(null)}
                 onSubmit={handleEdit}
             />

@@ -94,16 +94,24 @@ class SimPlanApiTests(TestCase):
         self.assertEqual(res.status_code, 200)
         self.assertEqual(res.json()['name'], '116-1 預排')
 
-    def test_changing_ref_semester_clears_courses(self):
+    def test_ref_semester_is_immutable(self):
+        """The course pool is fixed at creation, so collected ids stay valid."""
         plan_id = self.create_plan().json()['id']
         self.post_json(f'/api/simulation/plans/{plan_id}/courses/',
                        {'course_id': '1142_1', 'visible': True})
         self.client.patch(f'/api/simulation/plans/{plan_id}/',
-                          data=json.dumps({'ref_semester': '1132'}),
+                          data=json.dumps({'name': 'renamed', 'ref_semester': '1132'}),
                           content_type='application/json')
         res = self.client.get(f'/api/simulation/plans/{plan_id}/')
-        self.assertEqual(res.json()['ref_semester'], '1132')
-        self.assertEqual(res.json()['courses'], [])
+        self.assertEqual(res.json()['ref_semester'], '1142')
+        self.assertEqual(res.json()['courses'], [{'course_id': '1142_1', 'visible': True}])
+
+    def test_rename_rejects_blank_name(self):
+        plan_id = self.create_plan().json()['id']
+        res = self.client.patch(f'/api/simulation/plans/{plan_id}/',
+                                data=json.dumps({'name': '  '}),
+                                content_type='application/json')
+        self.assertEqual(res.status_code, 400)
 
     def test_clear_and_delete(self):
         plan_id = self.create_plan().json()['id']

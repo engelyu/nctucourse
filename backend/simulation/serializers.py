@@ -15,5 +15,6 @@ class SimPlanSerializer(serializers.Serializer):
 
 
 class SimPlanUpdateSerializer(serializers.Serializer):
-    name = serializers.CharField(max_length=30, required=False)
-    ref_semester = serializers.CharField(max_length=5, required=False)
+    # ref_semester is fixed at creation: course ids are namespaced by their
+    # source semester, so changing it would invalidate every collected course.
+    name = serializers.CharField(max_length=30)
