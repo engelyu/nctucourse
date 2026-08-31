@@ -65,6 +65,24 @@ const publicPlan = (p) => ({
 const coursesOf = (p) =>
     Object.keys(p.courses).map((cid) => ({ course_id: cid, visible: p.courses[cid] }));
 
+// --- custom courses ---------------------------------------------------------
+// { nextId, courses: [{ id, scope, ...fields }] }  scope is "sem:1151" or "plan:3"
+const CUSTOM = "static_custom";
+
+const customState = () => read(CUSTOM, { nextId: 1, courses: [] });
+
+const scopeKey = (query) => {
+    const plan = query.get("plan");
+    if (plan !== null) return `plan:${plan}`;
+    const sems = window.__STATIC_SEMESTERS__ || [];
+    return `sem:${query.get("sem") || sems[0]}`;
+};
+
+const publicCustom = (c) => {
+    const { scope, ...rest } = c;
+    return rest;
+};
+
 // --- plain blobs ------------------------------------------------------------
 const PROFILE = "static_profile";
 const HISTORY = "static_courses_history";
@@ -180,6 +198,10 @@ const routes = [
         state.plans = state.plans.filter((p) => String(p.id) !== m[1]);
         if (state.plans.length === before) return ok("", 404);
         write(PLANS, state);
+
+        const custom = customState();
+        custom.courses = custom.courses.filter((c) => c.scope !== `plan:${m[1]}`);
+        write(CUSTOM, custom);
         return ok("");
     }],
 
@@ -211,6 +233,63 @@ const routes = [
         plan.courses = {};
         plan.updated_at = now();
         write(PLANS, state);
+        return ok("");
+    }],
+
+    // ---- custom courses ----
+    ["GET", /^\/api\/simulation\/custom\/?$/, (m, body, query) => {
+        const key = scopeKey(query);
+        return ok({
+            courses: customState().courses.filter((c) => c.scope === key).map(publicCustom),
+        });
+    }],
+
+    ["POST", /^\/api\/simulation\/custom\/?$/, (m, body, query) => {
+        if (!(body.name || "").trim()) return ok("", 400);
+        if (body.color && !/^#[0-9a-fA-F]{6}$/.test(body.color)) return ok("", 400);
+        const state = customState();
+        const course = {
+            id: state.nextId,
+            scope: scopeKey(query),
+            name: body.name.trim(),
+            teacher: body.teacher || "",
+            time: body.time || "",
+            room: body.room || "",
+            credit: Number(body.credit) || 0,
+            color: body.color || "#aebed1",
+            visible: body.visible !== false,
+        };
+        state.nextId += 1;
+        state.courses.push(course);
+        write(CUSTOM, state);
+        return ok(publicCustom(course), 201);
+    }],
+
+    ["PATCH", /^\/api\/simulation\/custom\/(\d+)\/?$/, (m, body) => {
+        const state = customState();
+        const course = state.courses.find((c) => String(c.id) === m[1]);
+        if (!course) return ok("", 404);
+        if (!(body.name || "").trim()) return ok("", 400);
+        if (body.color && !/^#[0-9a-fA-F]{6}$/.test(body.color)) return ok("", 400);
+        Object.assign(course, {
+            name: body.name.trim(),
+            teacher: body.teacher || "",
+            time: body.time || "",
+            room: body.room || "",
+            credit: Number(body.credit) || 0,
+            color: body.color || course.color,
+            visible: body.visible !== false,
+        });
+        write(CUSTOM, state);
+        return ok(publicCustom(course));
+    }],
+
+    ["DELETE", /^\/api\/simulation\/custom\/(\d+)\/?$/, (m) => {
+        const state = customState();
+        const before = state.courses.length;
+        state.courses = state.courses.filter((c) => String(c.id) !== m[1]);
+        if (state.courses.length === before) return ok("", 404);
+        write(CUSTOM, state);
         return ok("");
     }],
 
